@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  resumes        Resume[]
+  applications   JobApplication[]
+  coverLetters   CoverLetter[]
+  searchPreference JobSearchPreference?
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String   @default("Untitled Resume")
+  template  String   @default("professional") // professional, modern, minimal
+  data      String   // JSON string of the resume data (personal, experience, education, skills)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JobListing {
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  location    String?
+  description String
+  url         String?
+  salary      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  applications JobApplication[]
+}
+
+model JobApplication {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId        String?
+  job          JobListing? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  
+  // Custom user data if not linked to a global JobListing
+  companyName  String?
+  jobTitle     String?
+  
+  status       String      @default("SAVED") // SAVED, APPLIED, INTERVIEWING, OFFER, REJECTED
+  appliedDate  DateTime?
+  notes        String?
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model CoverLetter {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String   @default("Untitled Cover Letter")
+  content      String   // The markdown or text content of the letter
+  targetRole   String?
+  targetCompany String?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model JobSearchPreference {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query     String
+  location  String
+  isActive  Boolean   @default(true)
+  lastRun   DateTime?
+}

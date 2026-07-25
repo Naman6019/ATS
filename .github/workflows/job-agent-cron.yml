@@ -1,0 +1,16 @@
+name: Daily Job Search Agent Cron
+
+on:
+  schedule:
+    # Runs at 08:00 UTC every day
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions UI
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Job Agent API
+        run: |
+          curl -X GET "${{ secrets.APP_URL }}/api/cron/job-agent" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
